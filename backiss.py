@@ -28,26 +28,27 @@ def main(args):
         if not args.dry_run:
             if source_file_system == "hdfs" and target_file_system == "file":
                 str_exec = f"hdfs dfs -get {source_path} {real_target_path}/"
-                print(f"\t\t{str_exec}")
+                print(f"{str_exec}")
                 os.system(str_exec)
+                print("")
                 return 'ok'
             else:
                 return 'nop'
 
     # Build the path_date_suffix
-    path_date_suffix = ''
+    path_date = ''
 
     if args.year:
-        path_date_suffix = f'/year={args.year}'
+        path_date = f'/year={args.year}'
 
     if args.month:
-        path_date_suffix = f'{path_date_suffix}/month={args.month}'
+        path_date = f'{path_date}/month={args.month}'
 
     if args.day:
-        path_date_suffix = f'{path_date_suffix}/day={args.day}'
+        path_date = f'{path_date}/day={args.day}'
 
     if args.verbose:
-        print(f'path_date_suffix = "{path_date_suffix}"')
+        print(f'path_date = "{path_date}"')
 
     for rule_path in args.rules:
 
@@ -69,16 +70,15 @@ def main(args):
 
                 dest_path = remove_duplicate_slash(dest_path)
 
-                if args.verbose:
-                    print( f"\t {rule['source']['file_system']}://{source_path} --> {rule['target']['file_system']}://{dest_path} ")
-
                 if args.action == "backup":
                     do_copy(rule['source']['file_system'],
                             source_path,
                             rule['target']['file_system'],
                             dest_path)
                 elif args.action == "status":
-                    os.system(f"ls -alh {dest_path}")
+                    print(f"Status of {dest_path}:")
+                    os.system(f"du -hs {dest_path}/*")
+                    print("")
 
 
 if __name__== "__main__" :
