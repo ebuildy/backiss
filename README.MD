@@ -1,7 +1,31 @@
 ## Usage
 
 ```
-python3 backiss.py backup --verbose --year=2019 --rules=./datahub_all.json
+./backiss backup --verbose --year=2019 --rules=./datahub_all.json
+```
+
+```
+usage: backiss [-h] [--rules [RULES [RULES ...]]]
+               [--filter-source-path FILTER_SOURCE_PATH] [--dry-run]
+               [--year YEAR] [--month MONTH] [--day DAY] [-v]
+               action
+
+Backup as a kiss!
+
+positional arguments:
+  action                backup / restore / status / delete / expire
+
+optional arguments:
+  -h, --help            show this help message and exit
+  --rules [RULES [RULES ...]]
+                        rule definition (JSON format)
+  --filter-source-path FILTER_SOURCE_PATH
+                        filter source path, by regex
+  --dry-run             dont do anything really
+  --year YEAR           optional year
+  --month MONTH         optional year
+  --day DAY             optional year
+  -v, --verbose         increase output verbosity
 ```
 
 ## Rule JSON schema
