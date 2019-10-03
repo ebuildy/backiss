@@ -10,7 +10,7 @@ usage: backiss [-h] [--rules [RULES [RULES ...]]]
                [--year YEAR] [--month MONTH] [--day DAY] [-v]
                action
 
-Backup as a kiss!
+Backup as simple as a (french) kiss!
 
 positional arguments:
   action                backup / restore / status / delete / expire
@@ -23,8 +23,8 @@ optional arguments:
                         filter source path, by regex
   --dry-run             dont do anything really
   --year YEAR           optional year
-  --month MONTH         optional year
-  --day DAY             optional year
+  --month MONTH         optional month
+  --day DAY             optional day
   -v, --verbose         increase output verbosity
 ```
 
@@ -56,3 +56,7 @@ Backup from HDFS to local file-system:
 3 CLI args: "year" "month" "day" allow you to build a path like
 
     /year=2019/month=10
+
+## path expansion
+
+source path with ``*`` (``/user/X/project=*/{path_date}``) are expanded.

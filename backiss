@@ -2,19 +2,27 @@
 
 import argparse, json, re, os
 
-parser = argparse.ArgumentParser(description='Backup as a kiss!')
+parser = argparse.ArgumentParser(description='Backup as simple as a (french) kiss!')
 parser.add_argument('action', type=str, help='backup / restore / status / delete / expire')
 parser.add_argument('--rules', type=str, help='rule definition (JSON format)', nargs="*")
 parser.add_argument('--filter-source-path', type=str, help='filter source path, by regex')
 parser.add_argument('--dry-run', help='dont do anything really', action="store_true")
 parser.add_argument('--year', help='optional year')
-parser.add_argument('--month', help='optional year')
-parser.add_argument('--day', help='optional year')
+parser.add_argument('--month', help='optional month')
+parser.add_argument('--day', help='optional day')
 parser.add_argument("-v", "--verbose", help="increase output verbosity", action="store_true")
 
 args = parser.parse_args()
 
 def main(args):
+
+    # Expand path with "*"
+    def expand_path(file_system, p):
+        if file_system == "hdfs":
+            return os.popen(f"hdfs dfs -ls -d {p} | awk '{{print $NF}}'").read().split("\n")
+        else:
+            return os.popen(f"ls -d -l {p} | awk '{{print $NF}}'").read().split("\n")
+
 
     def remove_duplicate_slash(p):
         return re.compile(r"(\/)\1{1,}").sub(r"\1", p)
@@ -74,30 +82,44 @@ def main(args):
                 source_path = source_path.format_map(locals())
                 source_path = remove_duplicate_slash(source_path)
 
-                if args.filter_source_path is not None:
-                    if re.match(args.filter_source_path, source_path) is None:
-                        if args.verbose:
-                            print(f"skip source {source_path}")
+                if "*" in source_path:
+                    if args.verbose:
+                        print(f'expand path "{source_path}"')
+                    source_paths = expand_path(rule['source']['file_system'], source_path)
+                else:
+                    source_paths = [source_path]
+
+                for source_path in source_paths:
+                    if len(source_path) < 2:
                         continue
 
-                dest_path = source_path
+                    if args.filter_source_path is not None:
+                        if re.match(args.filter_source_path, source_path) is None:
+                            if args.verbose:
+                                print(f"skip source {source_path}")
+                            continue
 
-                if 'rewrite' in rule:
-                    for k, v in rule['rewrite'].items():
-                        dest_path = re.compile(k).sub(v, source_path)
+                    dest_path = source_path
 
-                dest_path = remove_duplicate_slash(dest_path)
+                    if args.verbose:
+                        print("")
+                        print(f'doing path "{source_path}"')
 
-                if args.action == "backup":
-                    do_copy(rule['source']['file_system'],
-                            source_path,
-                            rule['target']['file_system'],
-                            dest_path)
-                elif args.action == "status":
-                    os.system(f"du -hs {dest_path}")
-                elif args.action == "delete":
-                    do_delete(rule['target']['file_system'], dest_path)
+                    if 'rewrite' in rule:
+                        for k, v in rule['rewrite'].items():
+                            dest_path = re.compile(k).sub(v, source_path)
 
+                    dest_path = remove_duplicate_slash(dest_path)
+
+                    if args.action == "backup":
+                        do_copy(rule['source']['file_system'],
+                                source_path,
+                                rule['target']['file_system'],
+                                dest_path)
+                    elif args.action == "status":
+                        os.system(f"du -hs {dest_path}")
+                    elif args.action == "delete":
+                        do_delete(rule['target']['file_system'], dest_path)
 
 if __name__== "__main__" :
     main(args)
